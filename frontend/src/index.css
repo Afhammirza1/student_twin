@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans antialiased text-gray-900 bg-[#FAFAFA];
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+/* Dark mode */
+.dark {
+  background-color: #0A0A0A;
+  color: #FAFAFA;
+}
+
+.dark body {
+  @apply bg-[#0A0A0A] text-[#FAFAFA];
+}
