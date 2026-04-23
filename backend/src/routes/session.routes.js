@@ -12,7 +12,7 @@ const {
 
 router.post("/start", authMiddleware, start);
 router.post("/stop", authMiddleware, stop);
-router.get("/", authMiddleware, getSessions);
+router.get("/history", authMiddleware, getSessions);
 router.get("/focus-today", authMiddleware, focusToday);
 
 module.exports = router;

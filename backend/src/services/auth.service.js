@@ -6,6 +6,10 @@ const { generateToken } = require("../utils/jwt");
 async function registerUser(data) {
   const { name, email, password } = data;
 
+  if (!name || !email || !password) {
+    throw new Error("Name, email and password are required");
+  }
+
   // Check existing user
   const existing = await findUserByEmail(email);
   if (existing) {
@@ -20,10 +24,13 @@ async function registerUser(data) {
   // 🔥 create student profile automatically
   await createStudent(user.id);
 
-  // 🔐 Remove password from response
+  // 🔐 Generate token so frontend can auto-login after signup
+  const token = generateToken(user);
+
+  // Remove password from response
   delete user.password;
 
-  return user;
+  return { token, user };
 }
 
 async function loginUser(data) {
@@ -31,12 +38,12 @@ async function loginUser(data) {
 
   const user = await findUserByEmail(email);
   if (!user) {
-    throw new Error("User not found");
+    throw new Error("Invalid email or password");
   }
 
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
-    throw new Error("Invalid password");
+    throw new Error("Invalid email or password");
   }
 
   const token = generateToken(user);

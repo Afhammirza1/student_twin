@@ -13,13 +13,19 @@ const summaryRoutes = require("./routes/summary.routes");
 const publicRoutes = require("./routes/public.routes");
 const githubRoutes = require("./routes/github.routes");
 const gamificationRoutes = require("./routes/gamification.routes");
+const notificationRoutes = require("./routes/notification.routes");
+const quizRoutes = require("./routes/quiz.routes");
+const interviewRoutes = require("./routes/interview.routes");
 const errorHandler = require("./middleware/error.middleware");
 const { apiLimiter, authLimiter } = require("./middleware/rateLimiter");
 
 const app = express();
 
 // 🔐 Security
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  credentials: true
+}));
 app.use(express.json({ limit: "10kb" }));
 
 // 🔥 Global rate limit
@@ -42,6 +48,9 @@ app.use("/api/summary", summaryRoutes);
 app.use("/api/public", publicRoutes);
 app.use("/api/github", githubRoutes);
 app.use("/api/gamification", gamificationRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/quiz", quizRoutes);
+app.use("/api/interview", interviewRoutes);
 
 // 🔥 Centralized error handler (must be last)
 app.use(errorHandler);

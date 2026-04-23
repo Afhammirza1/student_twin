@@ -2,15 +2,16 @@ const pool = require("../config/db");
 const { findStudentByUserId, addXP } = require("../models/student.model");
 const { generateAIResponse } = require("./ai.service");
 const { getSkillsByStudentId } = require("../models/studentSkill.model");
+const { notify } = require("./notification.service");
 
 // Phase 2: Focus Mode
 async function rewardFocusXP(userId) {
   const student = await findStudentByUserId(userId);
   if (!student) throw new Error("Student not found");
 
-  const focusXP = 15; // 15 XP for a solid focus block
+  const focusXP = 15;
   await addXP(userId, focusXP);
-  
+  await notify(userId, "xp", "Focus Session Complete! 🔥", `You earned ${focusXP} XP for completing a 25-minute deep work session.`);
   return { xpEarned: focusXP, message: "Focus complete! 15 XP earned." };
 }
 
@@ -21,12 +22,16 @@ async function getDailyQuest(userId) {
 
   const today = new Date().toISOString().split('T')[0];
   
-  if (student.quest_date) {
-    const qDate = new Date(student.quest_date).toISOString().split('T')[0];
+  const questDate = student.quest_date || null;
+  const currentQuest = student.current_quest || null;
+  const questCompleted = student.quest_completed || false;
+
+  if (questDate) {
+    const qDate = new Date(questDate).toISOString().split('T')[0];
     if (qDate === today) {
       return { 
-        quest: student.current_quest, 
-        completed: student.quest_completed 
+        quest: currentQuest, 
+        completed: questCompleted 
       };
     }
   }
@@ -60,7 +65,8 @@ async function getDailyQuest(userId) {
 async function completeDailyQuest(userId) {
   const student = await findStudentByUserId(userId);
   if (!student) throw new Error("Student not found");
-  if (student.quest_completed) throw new Error("Quest already completed today!");
+  const questCompleted = student.quest_completed || false;
+  if (questCompleted) throw new Error("Quest already completed today!");
 
   await pool.query(
     "UPDATE students SET quest_completed = true WHERE id = $1",
@@ -69,7 +75,7 @@ async function completeDailyQuest(userId) {
   
   const questXP = 20; 
   await addXP(userId, questXP);
-
+  await notify(userId, "quest", "Daily Quest Complete! 🎯", `You earned ${questXP} XP for completing today's micro-quest. Check tomorrow for a new challenge!`);
   return { xpEarned: questXP, message: "Quest Complete!" };
 }
 

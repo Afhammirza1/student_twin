@@ -58,6 +58,7 @@ Generate a short professional summary for portfolio. Max 3-4 sentences. Be encou
 `;
 
     const raw = await generateAIResponse(prompt);
+    if (!raw) return error(res, "Failed to generate AI Profile");
     await updateAiSummary(student.id, raw);
 
     return success(res, { aiSummary: raw }, "AI Profile Generated successfully");

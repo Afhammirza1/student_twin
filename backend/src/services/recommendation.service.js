@@ -52,28 +52,50 @@ async function getRecommendations(userId, useAI = false) {
       ? "Keep practicing your current skills"
       : "Start by adding your first skill";
 
-  // Career alignment
-  const hasJava = skills.some(
-    (s) => s.skill_name.toLowerCase() === "java" && s.score >= 60
-  );
-  const hasSQL = skills.some(
-    (s) => s.skill_name.toLowerCase() === "sql" && s.score >= 60
-  );
+  // 🔥 Dynamic Career Track Alignment
+  const careerTracks = {
+    "Frontend Developer": ["react", "javascript", "typescript", "html", "css", "vue", "angular", "next.js", "svelte", "tailwind"],
+    "Backend Developer": ["java", "python", "node.js", "express", "spring", "django", "sql", "postgresql", "mongodb", "go", "rust", "c#", ".net"],
+    "Full Stack Developer": ["react", "javascript", "node.js", "express", "mongodb", "sql", "html", "css", "python", "typescript"],
+    "Data Scientist": ["python", "r", "sql", "pandas", "numpy", "tensorflow", "pytorch", "statistics", "machine learning", "data analysis"],
+    "DevOps Engineer": ["docker", "kubernetes", "aws", "azure", "gcp", "linux", "ci/cd", "terraform", "ansible", "jenkins"],
+    "Mobile Developer": ["react native", "flutter", "swift", "kotlin", "dart", "android", "ios", "java"],
+    "AI/ML Engineer": ["python", "tensorflow", "pytorch", "machine learning", "deep learning", "nlp", "computer vision", "opencv"],
+  };
 
-  if (!hasJava || !hasSQL) {
+  const studentSkillNames = skills.map(s => s.skill_name.toLowerCase());
+  
+  let bestTrack = null;
+  let bestMatchCount = 0;
+  let bestMatchPercent = 0;
+  let missingSkills = [];
+
+  for (const [track, requiredSkills] of Object.entries(careerTracks)) {
+    const matched = requiredSkills.filter(rs => studentSkillNames.some(ss => ss.includes(rs) || rs.includes(ss)));
+    const matchPercent = Math.round((matched.length / requiredSkills.length) * 100);
+    
+    if (matched.length > bestMatchCount) {
+      bestMatchCount = matched.length;
+      bestMatchPercent = matchPercent;
+      bestTrack = track;
+      missingSkills = requiredSkills.filter(rs => !studentSkillNames.some(ss => ss.includes(rs) || rs.includes(ss))).slice(0, 3);
+    }
+  }
+
+  if (bestTrack && bestMatchPercent < 60) {
     recommendations.push({
       skill: "Career Path",
       level: "INFO",
-      score: null,
-      message: "Focus on Backend Development skills like Java and SQL",
-      action: "Prioritize Java and SQL to unlock Backend Developer roles",
+      score: bestMatchPercent,
+      message: `You're ${bestMatchPercent}% aligned with ${bestTrack} roles`,
+      action: `Learn ${missingSkills.join(", ")} to strengthen your path to ${bestTrack}`,
     });
-  } else {
+  } else if (bestTrack) {
     recommendations.push({
       skill: "Career Path",
       level: "SUCCESS",
-      score: null,
-      message: "You are on track for Backend Developer roles",
+      score: bestMatchPercent,
+      message: `You are ${bestMatchPercent}% aligned for ${bestTrack} roles`,
       action: "Keep building projects and contributing to open source",
     });
   }

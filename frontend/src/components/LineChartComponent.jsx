@@ -1,37 +1,53 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 
-export default function LineChartComponent({ data }) {
-  // Mocking trend data. In reality, you'd fetch this.
-  const chartData = [
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-gray-900 text-white px-3 py-2 rounded-xl shadow-xl text-xs">
+        <p className="font-bold text-indigo-300 mb-1">{label}</p>
+        <p>Consistency: <b>{payload[0].value}%</b></p>
+      </div>
+    );
+  }
+  return null;
+};
+
+export default function LineChartComponent({ data, realData }) {
+  // Use real data if provided, else fall back to mock
+  const chartData = realData && realData.length > 0 ? realData : [
     { day: "Mon", consistency: 60 },
     { day: "Tue", consistency: 65 },
     { day: "Wed", consistency: 80 },
     { day: "Thu", consistency: 75 },
     { day: "Fri", consistency: 90 },
     { day: "Sat", consistency: 85 },
-    { day: "Sun", consistency: data?.consistency || 95 }
+    { day: "Sun", consistency: data?.consistency || 95 },
   ];
 
   return (
     <div className="h-64 w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+        <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+          <defs>
+            <linearGradient id="consistGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%"  stopColor="#6366f1" stopOpacity={0.25} />
+              <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+            </linearGradient>
+          </defs>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-          <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fill: '#6B7280', fontSize: 12}} dy={10} />
-          <YAxis axisLine={false} tickLine={false} tick={{fill: '#6B7280', fontSize: 12}} />
-          <Tooltip 
-            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
-            itemStyle={{ color: '#4F46E5', fontWeight: 'bold' }}
+          <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: '#9CA3AF', fontSize: 11 }} dy={10} />
+          <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9CA3AF', fontSize: 11 }} domain={[0, 100]} />
+          <Tooltip content={<CustomTooltip />} />
+          <Area
+            type="monotone"
+            dataKey="consistency"
+            stroke="#6366f1"
+            strokeWidth={2.5}
+            fill="url(#consistGrad)"
+            dot={{ r: 4, fill: "#6366f1", strokeWidth: 0 }}
+            activeDot={{ r: 6, fill: "#6366f1", strokeWidth: 0 }}
           />
-          <Line 
-            type="monotone" 
-            dataKey="consistency" 
-            stroke="#4F46E5" 
-            strokeWidth={3} 
-            dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} 
-            activeDot={{ r: 8, stroke: '#4F46E5', strokeWidth: 0, fill: '#4F46E5' }} 
-          />
-        </LineChart>
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   );

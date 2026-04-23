@@ -22,11 +22,11 @@ async function stop(req, res) {
   try {
     const { sessionId } = req.body;
 
-    if (!sessionId) {
-      return error(res, "sessionId is required");
+    if (!sessionId || !Number.isInteger(Number(sessionId))) {
+      return error(res, "Valid numeric sessionId is required");
     }
 
-    const session = await stopSession(sessionId);
+    const session = await stopSession(Number(sessionId));
 
     return success(res, session, "Session stopped");
   } catch (err) {

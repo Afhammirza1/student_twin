@@ -1,29 +1,31 @@
-const { getSkillsByStudentId } = require("../models/studentSkill.model");
 const { findStudentByUserId } = require("../models/student.model");
+const pool = require("../config/db");
 
 async function getConsistency(userId) {
   const student = await findStudentByUserId(userId);
   if (!student) throw new Error("Student not found");
 
-  const skills = await getSkillsByStudentId(student.id);
-
-  if (skills.length === 0) {
-    return { consistency: 0, message: "No activity yet" };
-  }
-
-  // Get unique active days
-  const activeDays = new Set(
-    skills.map(s => new Date(s.created_at).toDateString())
+  // Use score_history (reliably timestamped) to compute active days in last 7 days
+  const result = await pool.query(
+    `SELECT DISTINCT DATE(created_at) as active_day
+     FROM score_history
+     WHERE student_id = $1
+       AND created_at >= NOW() - INTERVAL '7 days'`,
+    [student.id]
   );
 
-  const totalDays = 7; // last week
+  const activeDays = result.rows.length;
+  const totalDays = 7;
 
-  const consistency = (activeDays.size / totalDays) * 100;
+  const consistency = Math.round((activeDays / totalDays) * 100);
 
   return {
-    consistency: Math.round(consistency),
-    activeDays: activeDays.size,
-    totalDays
+    consistency,
+    activeDays,
+    totalDays,
+    // Aliases consumed by the Report.jsx frontend
+    completed: activeDays,
+    weeklyGoal: totalDays,
   };
 }
 

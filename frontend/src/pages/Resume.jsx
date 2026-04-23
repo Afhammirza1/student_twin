@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useReactToPrint } from "react-to-print";
+import toast from "react-hot-toast";
 import { 
   FiSave, FiUser, FiBriefcase, FiMail, FiPhone, FiBook, 
   FiCode, FiDownload, FiGithub, FiLinkedin, FiAlignLeft,
@@ -65,7 +66,7 @@ export default function Resume() {
 
   const saveResume = () => {
     localStorage.setItem("resume_v2", JSON.stringify(form));
-    alert("✅ Resume Saved Successfully!");
+    toast.success("Resume saved! ✅");
   };
 
   const componentRef = useRef();
@@ -94,8 +95,8 @@ export default function Resume() {
 
   const InputField = ({ label, name, icon: Icon, placeholder, isTextarea, value, onChange }) => (
     <div className="group">
-      <label className="text-xs font-bold tracking-widest text-gray-500 uppercase flex items-center gap-2 mb-2 group-focus-within:text-indigo-600 transition-colors">
-        {Icon && <Icon className="text-sm" />} {label}
+      <label className="label mb-2 flex items-center gap-1.5 group-focus-within:text-indigo-600 transition-colors">
+        {Icon && <Icon size={11} />} {label}
       </label>
       {isTextarea ? (
         <textarea
@@ -103,7 +104,7 @@ export default function Resume() {
           value={value !== undefined ? value : form[name]}
           onChange={onChange || handleChange}
           placeholder={placeholder}
-          className="w-full p-4 bg-gray-50/80 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-medium min-h-[120px] resize-y shadow-sm"
+          className="input-field min-h-[100px] resize-y"
         />
       ) : (
         <input
@@ -111,7 +112,7 @@ export default function Resume() {
           value={value !== undefined ? value : form[name]}
           onChange={onChange || handleChange}
           placeholder={placeholder}
-          className="w-full p-4 bg-gray-50/80 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-medium shadow-sm"
+          className="input-field"
         />
       )}
     </div>
@@ -371,7 +372,7 @@ export default function Resume() {
                     <div className="space-y-5">
                       <h2 className="text-[11px] font-black uppercase text-slate-500 tracking-[0.25em] mb-4 border-b border-slate-800 pb-2 flex items-center gap-2"><FiBook/> Education</h2>
                       {form.educations.map((edu, idx) => (
-                        <div key={idx} className="relative">
+                        <div key={edu.id} className="relative">
                           <h4 className="text-sm font-bold text-slate-100">{edu.degree}</h4>
                           <p className="text-xs text-slate-400 mt-1">{edu.school}</p>
                           <p className={`text-[10px] uppercase tracking-wider font-bold mt-1 ${currentTheme.text}`}>{edu.date}</p>
@@ -433,8 +434,8 @@ export default function Resume() {
                       {/* Timeline Line */}
                       <div className={`absolute left-[5.5px] top-2 bottom-0 w-px bg-gray-200`}></div>
 
-                      {form.experiences.map((exp, idx) => (
-                        <div key={idx} className="relative">
+                    {form.experiences.map((exp, idx) => (
+                         <div key={exp.id} className="relative">
                           {/* Timeline Dot */}
                           <div className={`absolute -left-[42px] top-1.5 w-3 h-3 rounded-full ${currentTheme.bg} ring-4 ring-white`}></div>
                           
@@ -447,7 +448,7 @@ export default function Resume() {
                           </h4>
                           
                           <div className="text-gray-600 text-[13px] leading-relaxed whitespace-pre-wrap">
-                            {exp.desc.split('\n').map((line, i) => {
+                            {(exp.desc || "").split('\n').map((line, i) => {
                               const trimmed = line.trim();
                               if (!trimmed) return null;
                               const isBullet = trimmed.startsWith('-') || trimmed.startsWith('•');

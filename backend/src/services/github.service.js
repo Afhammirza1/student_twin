@@ -1,6 +1,7 @@
 const axios = require("axios");
 const pool = require("../config/db");
 const { findStudentByUserId, addXP } = require("../models/student.model");
+const { notify } = require("./notification.service");
 
 async function linkGithubUsername(userId, githubUsername) {
   const student = await findStudentByUserId(userId);
@@ -49,6 +50,11 @@ async function syncGithubRepos(userId) {
 
   if (xpReward > 0) {
     await addXP(userId, xpReward);
+    try {
+      await notify(userId, "github", "GitHub Synced! 🐙", `Found ${originalRepos} original repos — you earned ${xpReward} XP!`);
+    } catch (notifyErr) {
+      console.warn("Notification failed (non-critical):", notifyErr.message);
+    }
   }
 
   return {
